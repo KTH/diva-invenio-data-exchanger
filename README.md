@@ -1,6 +1,8 @@
-# DIVA Invenio converter
-
-
+# DIVA Invenio data exchanger
+The DIVA Invenio Data Exchanger is a Python-based tool designed to facilitate data exchange between the DIVA and Invenio systems.
+The tool provides a seamless way to move data between these two systems, making it easy to convert Diva data into Invenio platform and vice versa.
+## prerequisites:
+Make sure your virtual environment is set up.
 
 ## How to convert
 Makefile provides you a convenient interface with the following commands:
@@ -11,7 +13,7 @@ List the available commands:
 make
 ```
 ### install
- installs the Python dependencies specified in the requirements.txt file
+Installs the Python dependencies specified in the requirements.txt file
 ```bash
 make install
 ```
