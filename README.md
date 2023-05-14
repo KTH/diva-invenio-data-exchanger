@@ -31,3 +31,11 @@ make format
 ```
 
 
+
+
+
+### builder class where it build the request body
+https://inveniordm.docs.cern.ch/reference/metadata/
+
+### Pandas docs:
+https://pandas.pydata.org/docs/getting_started/intro_tutorials/10_text_data.html
