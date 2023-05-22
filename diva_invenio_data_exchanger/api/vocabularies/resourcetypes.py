@@ -1,23 +1,4 @@
-def translate_resource_type(resource_type):
-    """Map Swedish resource type to English."""
-    # Todo double check with librarians if this mapping is correct
-    translation_mapping = {
-        "Konferensbidrag": "publication-paper",
-        "Artikel i tidskrift": "publication-article",
-        "Kapitel i bok, del av antologi": "publication-section",
-        "Bok": "publication-book",
-        "Rapport": "publication-other",
-        "Övrigt": "other",
-        "Artikel, forskningsöversikt": "publication-other",
-        "Patent": "publication-patent",
-        "Proceedings (redaktörskap)": "publication",
-        "Artikel, recension": "publication-other",
-        "Samlingsverk (redaktörskap)": "publication",
-    }
-    # TODO Check what is the default value for the resource type when it is not provided
-    return {"id": translation_mapping.get(resource_type, "other")}
-
-
+# Can be deleted after on the first release
 # Unique values found in Diva data.
 # TODO collect a full list to map it to the available ones in Invenio
 diva_resourcetypes_json = [
@@ -91,10 +72,10 @@ resource_type_ids = [
     "other"
 ]
 
-
+# For reference can be deleted later
 # API responses for Invenio resources types
 # {{baseURL}}/api/vocabularies/resourcetypes
-resourcetypes_json = {
+resourcetypes_json_response = {
     "hits": {
         "hits": [
             {
