@@ -1,85 +1,70 @@
-import re
-
 import pandas as pd
 
-
-def clean_name(creator_name):
-    """Cleanup name field."""
-    name_pattern = re.compile(r"^([\w\s,-]+)")
-    orcid_pattern = re.compile(
-        r"\b[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{3}[0-9A-Fa-fXx]\b"
-    )
-    affiliation_pattern = re.compile(r"\(([^)]+)\)")
-
-    authors = creator_name.split(";")
-
-    authors_list = []
-
-    if authors:
-        for author in authors:
-            name_match = name_pattern.match(author)
-            orcid_match = orcid_pattern.search(author)
-            affiliation_matches = affiliation_pattern.findall(author)
-
-            name = name_match.group(1).strip() if name_match else "NotProvided"
-            orcid = orcid_match.group(0) if orcid_match else "NotProvided"
-            affiliations = (
-                [aff.strip() for aff in affiliation_matches]
-                if affiliation_matches
-                else None
-            )
-
-            if name and "," in name:
-                givenNames = name.split(",")[1]
-                familyName = name.split(",")[0]
-            else:
-                givenNames = "NotProvided"
-                familyName = name if name else "NotProvided"
-
-            authors_list.append(
-                {
-                    "givenNames": givenNames,
-                    "familyName": familyName,
-                    "identifiers": orcid,
-                    "affiliations": affiliations,
-                    "role": "Researcher",
-                }
-            )
-
-    return authors_list
+from diva_invenio_data_exchanger.api.vocabularies.resourcetypes import \
+    translate_resource_type
+from diva_invenio_data_exchanger.services.description import clean_description
+from diva_invenio_data_exchanger.services.keywords import clean_keywords
+from diva_invenio_data_exchanger.services.names import clean_name
+from diva_invenio_data_exchanger.utils.general import remove_html_tags
 
 
-def remove_html_tags(text):
-    """Remove HTML tags."""
-    return re.sub("<.*?>", "", text)
+class MetadataMapper:
+    def __init__(self, mapping):
+        self.mapping = mapping
+
+    def map(self, df):
+        for new, info in self.mapping.items():
+            df[new] = df[info["old"]].apply(info["func"])
+        return df
 
 
-def clean_keywords(subject):
-    """Cleanup subject field and return a list of dicts with subject as key."""
-    sub = subject.split(";")
-    return [{"subject": s} for s in sub]
+class CsvToJsonConverter:
+    def __init__(self, csv_path, json_path, metadata_mapper):
+        self.csv_path = csv_path
+        self.json_path = json_path
+        self.metadata_mapper = metadata_mapper
+        self.df = self.load_data()
+
+    def load_data(self):
+        df = pd.read_csv(self.csv_path, encoding="utf-8")
+        df = df.astype(str)
+        df = df.applymap(remove_html_tags)
+        return df
+
+    def convert(self):
+        self.df = self.metadata_mapper.map(self.df)
+        self.df["metadata"] = self.df[
+            list(self.metadata_mapper.mapping.keys())
+        ].to_dict("records")
+        df_selected = self.df[["metadata"]]
+        df_selected.to_json(
+            self.json_path, orient="records", indent=4, force_ascii=False
+        )
 
 
-def csv_to_json(csv_path, json_path):
-    """CSV_to_JSON."""
-    df = pd.read_csv(csv_path, encoding="utf-8")
-    df = df.astype(str)
-    df = df.applymap(remove_html_tags)
+# def csv_to_json(csv_path, json_path):
+#     """CSV_to_JSON."""
+#     df = pd.read_csv(csv_path, encoding="utf-8")
+#     df = df.astype(str)
+#     df = df.applymap(remove_html_tags)
 
-    # Define the mapping between old and new columns and their respective functions
-    column_mapping = {
-        "creators": {"old": "Name", "func": clean_name},
-        "subjects": {"old": "Keywords", "func": clean_keywords},
-        "title": {"old": "Title", "func": lambda x: x},  # No transformation function for title
-        "description": {"old": "Abstract", "func": lambda x: x},
-    }
+#     # Define the mapping between old and new columns and their respective functions
+#     metadata_column_mapping = {
+#         "creators": {"old": "Name", "func": clean_name},
+#         "subjects": {"old": "Keywords", "func": clean_keywords},
+#         "resource_type": {"old": "PublicationType", "func": translate_resource_type},
+#         "title": {
+#             "old": "Title",
+#             "func": lambda x: x,
+#         },  # No transformation function for title
+#         "description": {"old": "Abstract", "func": clean_description},
+#     }
 
-    # Apply the transformations
-    for new, info in column_mapping.items():
-        df[new] = df[info['old']].apply(info['func'])
+#     # Apply the transformations
+#     for new, info in metadata_column_mapping.items():
+#         df[new] = df[info["old"]].apply(info["func"])
 
-    # Create a metadata column that nests creators, subjects, and title
-    df["metadata"] = df[list(column_mapping.keys())].to_dict('records')
-
-    df_selected = df[["metadata"]]
-    df_selected.to_json(json_path, orient="records", indent=4, force_ascii=False)
+#     # Create a metadata column that nests creators, subjects, and title
+#     df["metadata"] = df[list(metadata_column_mapping.keys())].to_dict("records")
+#     df_selected = df[["metadata"]]
+#     df_selected.to_json(json_path, orient="records", indent=4, force_ascii=False)

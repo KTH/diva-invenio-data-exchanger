@@ -20,5 +20,8 @@
         "titleBar.inactiveBackground": "#2b034199",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.remoteColor": "#2b0341"
+    "peacock.remoteColor": "#2b0341",
+    "files.exclude": {
+        "**/__pycache__": true
+    }
 }
