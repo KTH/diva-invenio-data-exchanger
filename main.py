@@ -1,6 +1,6 @@
 from diva_invenio_data_exchanger.config import mapping
 from diva_invenio_data_exchanger.converter import (CsvToJsonConverter,
-                                                   MetadataMapper)
+                                                   DataMapper)
 from diva_invenio_data_exchanger.utils.general import (display_message,
                                                        parse_arguments)
 
@@ -9,13 +9,12 @@ def main():
     """Initiate the app."""
     args = parse_arguments()
 
-    metadata_mapper = MetadataMapper(mapping)
-
-    converter = CsvToJsonConverter(args.input, args.output, metadata_mapper)
     try:
+        data_mapper = DataMapper(mapping)
+        converter = CsvToJsonConverter(args.input, args.output, data_mapper)
         display_message(f"converting {args.input} to {args.output}", "blue")
         converter.convert()
-        display_message("conversion completed successfully!", "green")
+        display_message("conversion completed successfully!")
         display_message(f"{args.output}", "yellow")
 
     # pylint: disable=broad-exception-caught
