@@ -3,7 +3,7 @@ import re
 import pandas as pd
 
 
-def clean_name(namee):
+def clean_name(creator_name):
     """Cleanup name field."""
     name_pattern = re.compile(r"^([\w\s,-]+)")
     orcid_pattern = re.compile(
@@ -11,7 +11,7 @@ def clean_name(namee):
     )
     affiliation_pattern = re.compile(r"\(([^)]+)\)")
 
-    authors = namee.split(";")
+    authors = creator_name.split(";")
 
     authors_list = []
 
@@ -21,8 +21,8 @@ def clean_name(namee):
             orcid_match = orcid_pattern.search(author)
             affiliation_matches = affiliation_pattern.findall(author)
 
-            name = name_match.group(1).strip() if name_match else None
-            orcid = orcid_match.group(0) if orcid_match else None
+            name = name_match.group(1).strip() if name_match else "NotProvided"
+            orcid = orcid_match.group(0) if orcid_match else "NotProvided"
             affiliations = (
                 [aff.strip() for aff in affiliation_matches]
                 if affiliation_matches
@@ -33,8 +33,8 @@ def clean_name(namee):
                 givenNames = name.split(",")[1]
                 familyName = name.split(",")[0]
             else:
-                givenNames = "Not provided"
-                familyName = name if name else "Not provided"
+                givenNames = "NotProvided"
+                familyName = name if name else "NotProvided"
 
             authors_list.append(
                 {
@@ -54,12 +54,32 @@ def remove_html_tags(text):
     return re.sub("<.*?>", "", text)
 
 
+def clean_keywords(subject):
+    """Cleanup subject field and return a list of dicts with subject as key."""
+    sub = subject.split(";")
+    return [{"subject": s} for s in sub]
+
+
 def csv_to_json(csv_path, json_path):
     """CSV_to_JSON."""
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, encoding="utf-8")
     df = df.astype(str)
     df = df.applymap(remove_html_tags)
-    df["Name"] = df["Name"].apply(clean_name)
-    df["Keywords"] = df["Keywords"].str.split(";")
-    # df['Title'] = df['Title'].apply(html.unescape).str.replace(r'<[^<>]*>', '', regex=True)
-    df.to_json(json_path, orient="records", indent=4, force_ascii=False)
+
+    # Define the mapping between old and new columns and their respective functions
+    column_mapping = {
+        "creators": {"old": "Name", "func": clean_name},
+        "subjects": {"old": "Keywords", "func": clean_keywords},
+        "title": {"old": "Title", "func": lambda x: x},  # No transformation function for title
+        "description": {"old": "Abstract", "func": lambda x: x},
+    }
+
+    # Apply the transformations
+    for new, info in column_mapping.items():
+        df[new] = df[info['old']].apply(info['func'])
+
+    # Create a metadata column that nests creators, subjects, and title
+    df["metadata"] = df[list(column_mapping.keys())].to_dict('records')
+
+    df_selected = df[["metadata"]]
+    df_selected.to_json(json_path, orient="records", indent=4, force_ascii=False)
