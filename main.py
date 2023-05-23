@@ -12,9 +12,9 @@ def main():
     try:
         data_mapper = DataMapper(mapping)
         converter = CsvToJsonConverter(args.input, args.output, data_mapper)
-        display_message(f"converting {args.input} to {args.output}", "blue")
+        display_message(f"converting... from {args.input} to {args.output}", "blue")
         converter.convert()
-        display_message("conversion completed successfully!")
+        display_message("conversion completed successfully! \nYou can find the result in:")
         display_message(f"{args.output}", "yellow")
 
     # pylint: disable=broad-exception-caught
