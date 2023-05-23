@@ -2,7 +2,7 @@ def translate_resource_type(resource_type):
     """Map Swedish resource type to English."""
     # Todo double check with librarians if this mapping is correct
     translation_mapping = {
-        "Konferensbidrag": "publication-paper",
+        "Konferensbidrag": "publication-other",
         "Artikel i tidskrift": "publication-article",
         "Kapitel i bok, del av antologi": "publication-section",
         "Bok": "publication-book",

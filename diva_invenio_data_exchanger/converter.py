@@ -1,5 +1,6 @@
 import pandas as pd
 
+from diva_invenio_data_exchanger.config import invenio_requiered_fields
 from diva_invenio_data_exchanger.utils.general import remove_html_tags
 
 
@@ -45,18 +46,26 @@ class CsvToJsonConverter:
         df = df.applymap(remove_html_tags)
         return df
 
+    def add_fields(self, fields):
+        """Add new fields to the dataframe."""
+        for field, value in fields.items():
+            # "_" is for Cannot set a DataFrame with multiple columns to the single column access
+            self.df[field] = self.df.apply(lambda _, val=value: val, axis=1)
+
+        return self.df
+
+    def select_columns(self):
+        """Keep only the needed columns."""
+        return self.df[["access", "files", "type", "metadata"]]
+
     def convert(self):
         """Converts CSV to JSON and saves it to file."""
         self.df = self.metadata_mapper.map(self.df)
-        # Nest mapped data under metadata key
         self.df["metadata"] = self.df[
             list(self.metadata_mapper.mapping.keys())
         ].to_dict("records")
-        # keep only metadata column
-        df_selected = self.df[["metadata"]]
-        # TODO add the rest of the columns
-
-        # Convert to JSON and save to file
+        self.df = self.add_fields(invenio_requiered_fields)
+        df_selected = self.select_columns()
         df_selected.to_json(
             self.json_path, orient="records", indent=4, force_ascii=False
         )
