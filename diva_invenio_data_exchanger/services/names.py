@@ -41,6 +41,7 @@ class AuthorBuilder:
 
     def build_orcid(self):
         """Build ORCID."""
+        # TODO needs improvment to detect and build other identifiers
         orcid = self.orcid_match.group(0) if self.orcid_match else ""
         if orcid:
             self.author_dict["person_or_org"]["identifiers"] = [
@@ -50,8 +51,9 @@ class AuthorBuilder:
         return self
 
     def build_affiliations(self):
+        """Build affiliations object."""
         affiliations = (
-            [aff.strip() for aff in self.affiliation_matches]
+            list(set([aff.strip() for aff in self.affiliation_matches]))
             if self.affiliation_matches
             else []
         )
