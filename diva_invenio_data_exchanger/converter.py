@@ -60,12 +60,22 @@ class CsvToJsonConverter:
 
     def convert(self):
         """Converts CSV to JSON and saves it to file."""
+
+        # clean data
         self.df = self.metadata_mapper.map(self.df)
+
+        # Add metadata to the dataframe
         self.df["metadata"] = self.df[
             list(self.metadata_mapper.mapping.keys())
         ].to_dict("records")
+
+        # Add requiered_fields
         self.df = self.add_fields(invenio_requiered_fields)
+
+        # Keep only the needed columns
         df_selected = self.select_columns()
+
+        # convert to json
         df_selected.to_json(
             self.json_path, orient="records", indent=4, force_ascii=False
         )
