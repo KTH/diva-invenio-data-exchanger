@@ -1,84 +1,178 @@
+import json
 import re
+from abc import ABC, abstractmethod
+
+import pandas as pd
 
 
-class AuthorBuilder:
-    """
-    Builds a dictionary of author information from a string.
-    """
+class CreatorParserStrategy(ABC):
+    @abstractmethod
+    def parse(self, creator):
+        pass
 
-    def __init__(self, author):
-        self.author = author
-        self.author_dict = {}
 
-        self.name_pattern = re.compile(r"^([\w\s,-]+)")
-        self.orcid_pattern = re.compile(
-            r"\b[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{3}[0-9A-Fa-fXx]\b"
-        )
-        self.affiliation_pattern = re.compile(r"\(([^)]+)\)")
+class IdentifierExtractor(ABC):
+    @abstractmethod
+    def extract(self, identifier):
+        pass
 
-        self.name_match = self.name_pattern.match(author)
-        self.orcid_match = self.orcid_pattern.search(author)
-        self.affiliation_matches = self.affiliation_pattern.findall(author)
 
-    def build_name(self):
-        """Build name."""
-        name = self.name_match.group(1).strip() if self.name_match else ""
-        if name and "," in name:
-            givenName = name.split(",")[1].strip()
-            familyName = name.split(",")[0].strip()
-        else:
-            givenName = "NotProvided"
-            familyName = name if name else "NotProvided"
+class OrcidExtractor(IdentifierExtractor):
+    ORCID_PATTERN = re.compile(
+        r"\b[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{3}[0-9A-Fa-fXx]\b"
+    )
 
-        self.author_dict["person_or_org"] = {
-            "family_name": familyName,
-            "given_name": givenName,
-            "name": f"{givenName} {familyName}",
+    def extract(self, identifier):
+        if self.ORCID_PATTERN.match(identifier):
+            return "orcid", identifier
+        return None, None
+
+
+class KthidExtractor(IdentifierExtractor):
+    KTHID_PATTERN = re.compile(r"\b[a-zA-Z0-9]{8}\b")
+
+    def extract(self, identifier):
+        if self.KTHID_PATTERN.match(identifier):
+            return "kthid", identifier
+        return None, None
+
+
+class DefaultCreatorParserStrategy(CreatorParserStrategy):
+    def __init__(self, identifier_extractors=None):
+        if identifier_extractors is None:
+            identifier_extractors = [OrcidExtractor(), KthidExtractor()]
+        self.identifier_extractors = identifier_extractors
+
+    def parse(self, creator):
+        parts = creator.split(";")
+        parsed_creators = []
+
+        for part in parts:
+            creator_data = self._parse_part(part)
+            parsed_creators.append(creator_data)
+
+        return parsed_creators
+
+    def split_name(self, name):
+        """Parse name."""
+        if not name:
+            return None, None
+
+        parts = [part.strip() for part in name.split(",")]
+        first_name = parts[0]
+        last_name = parts[1] if len(parts) > 1 else None
+
+        return first_name, last_name
+
+    def _parse_part(self, part):
+        creator_data = {}
+        # split the part by parentheses and remove the parenthese
+        split_data = re.split(r"\(.*?\)", part)
+        # Etracting all bracketed expressions from the first item after the split
+        identifiers = re.findall(r"\[(.*?)\]", split_data[0])
+        # Remove the bracketed expressions
+        name = re.sub(r"\[.*?\]", "", split_data[0]).strip()
+        first_name, last_name = self.split_name(name)
+
+        creator_data["person_or_org"] = {
+            "family_name": last_name,
+            "given_name": first_name,
+            "name": f"{first_name} {last_name}",
             "type": "personal",
         }
 
-        return self
+        self._add_identifiers(creator_data, identifiers)
+        self._add_affiliations(creator_data, split_data)
 
-    def build_orcid(self):
-        """Build ORCID."""
-        # TODO needs improvment to detect and build other identifiers
-        orcid = self.orcid_match.group(0) if self.orcid_match else ""
-        if orcid:
-            self.author_dict["person_or_org"]["identifiers"] = [
-                {"identifier": orcid, "scheme": "orcid"}
+        return creator_data
+
+    def _add_identifiers(self, creator_data, identifiers):
+        if identifiers:
+            creator_data["person_or_org"]["identifiers"] = []
+
+            for identifier in identifiers:
+                # identifier = identifier.strip()
+                for extractor in self.identifier_extractors:
+                    scheme, identifier_value = extractor.extract(identifier)
+                    if scheme:
+                        creator_data["person_or_org"]["identifiers"].append(
+                            {"identifier": identifier_value, "scheme": scheme}
+                        )
+                        break
+    # TODO needs imporvment
+    def _add_affiliations(self, creator_data, split_data):
+        if len(split_data) > 1:
+            affiliations = split_data[1]
+            creator_data["affiliations"] = [
+                {"name": affiliation.strip()}
+                for affiliation in re.split(r",\s*(?=[A-Z])", affiliations)
             ]
 
-        return self
 
-    def build_affiliations(self):
-        """Build affiliations object."""
-        affiliations = (
-            list(set([aff.strip() for aff in self.affiliation_matches]))
-            if self.affiliation_matches
-            else []
-        )
-        if affiliations:
-            self.author_dict["affiliations"] = [
-                {"name": affiliation} for affiliation in affiliations
-            ]
+class CreatorParser:
+    """
+    Parser for creator strings.
+    """
 
-        return self
+    def __init__(self, parser_strategy: CreatorParserStrategy = None):
+        if parser_strategy is None:
+            # TODO: Add KTHID when it's implemented in invenio instance
+            # identifier_extractors = [OrcidExtractor(), KthidExtractor()]
+            parser_strategy = DefaultCreatorParserStrategy(
+                identifier_extractors=[OrcidExtractor()]
+            )
+        self.parser_strategy = parser_strategy
 
-    def build(self):
-        """Build the author dictionary."""
-        return self.author_dict
+    def parse(self, creators):
+        """
+        Parse a list of creator strings.
+        """
+        return self.parser_strategy.parse(creators)
 
 
-def clean_name(creator_name):
+class MetadataBuilderStrategy(ABC):
+    """
+    Metadata builder strategy.
+    """
+
+    @abstractmethod
+    def build_metadata(self, data, field):
+        """Build metadata."""
+
+
+class CreatorMetadataBuilderStrategy(MetadataBuilderStrategy):
+    """
+    Metadata builder for creators.
+    """
+
+    def __init__(self, creator_parser: CreatorParser):
+        self.creator_parser = creator_parser
+
+    def build_metadata(self, data, field="creators"):
+        creators = self.creator_parser.parse(data["Name"])
+        data[field] = creators
+        return data
+
+
+class MetadataBuilder:
+    """
+    Metadata builder.
+    """
+
+    def __init__(self, metadata_builder_strategy: MetadataBuilderStrategy):
+        self.metadata_builder_strategy = metadata_builder_strategy
+
+    def build_metadata(self, data, field):
+        """
+        Build metadata.
+        """
+        return self.metadata_builder_strategy.build_metadata(data, field)
+
+
+def parse_name(creator_name):
     """
     Cleans a creator name string.
     """
-    authors = creator_name.split(";")
-    authors_list = []
+    creator_parser = CreatorParser()
 
-    for author in authors:
-        builder = AuthorBuilder(author)
-        author_dict = builder.build_name().build_orcid().build_affiliations().build()
-        authors_list.append(author_dict)
-
-    return authors_list
+    return creator_parser.parse(creator_name)
