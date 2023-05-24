@@ -1,4 +1,4 @@
-def clean_keywords(subject):
+def parse_keywords(subject):
     """Cleanup subject field and return a list of dicts with subject as key."""
     # TODO find a way to match with Invenio subjects
     # {{baseURL}}/api/subjects?suggest={{subject-query}}

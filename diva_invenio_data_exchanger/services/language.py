@@ -1,3 +1,3 @@
-def clean_language(language):
+def parse_language(language):
     """Clean language."""
     return [{"id": language.strip().lower()}]

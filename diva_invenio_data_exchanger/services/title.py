@@ -1,4 +1,4 @@
-def clean_title(title):
+def parse_title(title):
     """Cleanup title."""
     # TODO
     return title
