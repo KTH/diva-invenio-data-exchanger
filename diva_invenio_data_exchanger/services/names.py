@@ -1,23 +1,22 @@
-import json
 import re
 from abc import ABC, abstractmethod
-
-import pandas as pd
 
 
 class CreatorParserStrategy(ABC):
     @abstractmethod
     def parse(self, creator):
-        pass
+        """Parse creator."""
 
 
-class IdentifierExtractor(ABC):
+class StringExtractor(ABC):
+    """String extractor."""
     @abstractmethod
     def extract(self, identifier):
-        pass
+        """Extract identifier."""
 
 
-class OrcidExtractor(IdentifierExtractor):
+class OrcidExtractor(StringExtractor):
+    """Extract ORCID from identifier."""
     ORCID_PATTERN = re.compile(
         r"\b[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{3}[0-9A-Fa-fXx]\b"
     )
@@ -28,7 +27,8 @@ class OrcidExtractor(IdentifierExtractor):
         return None, None
 
 
-class KthidExtractor(IdentifierExtractor):
+class KthidExtractor(StringExtractor):
+    """Extract KTHID from identifier."""
     KTHID_PATTERN = re.compile(r"\b[a-zA-Z0-9]{8}\b")
 
     def extract(self, identifier):
@@ -37,7 +37,8 @@ class KthidExtractor(IdentifierExtractor):
         return None, None
 
 
-class DefaultCreatorParserStrategy(CreatorParserStrategy):
+class PersonOrOrgParserStrategy(CreatorParserStrategy):
+    """Parse person or organization."""
     def __init__(self, identifier_extractors=None):
         if identifier_extractors is None:
             identifier_extractors = [OrcidExtractor(), KthidExtractor()]
@@ -87,26 +88,35 @@ class DefaultCreatorParserStrategy(CreatorParserStrategy):
         return creator_data
 
     def _add_identifiers(self, creator_data, identifiers):
-        if identifiers:
-            creator_data["person_or_org"]["identifiers"] = []
+        if not identifiers:
+            return None
 
-            for identifier in identifiers:
-                # identifier = identifier.strip()
-                for extractor in self.identifier_extractors:
-                    scheme, identifier_value = extractor.extract(identifier)
-                    if scheme:
-                        creator_data["person_or_org"]["identifiers"].append(
-                            {"identifier": identifier_value, "scheme": scheme}
-                        )
-                        break
+        creator_data["person_or_org"]["identifiers"] = [
+            self._extract_identifier(identifier) for identifier in identifiers if self._extract_identifier(identifier) is not None
+        ]
+
+    def _extract_identifier(self, identifier):
+        for extractor in self.identifier_extractors:
+            scheme, identifier_value = extractor.extract(identifier)
+            if scheme:
+                return {"identifier": identifier_value, "scheme": scheme}
+        return None
+
     # TODO needs imporvment
     def _add_affiliations(self, creator_data, split_data):
-        if len(split_data) > 1:
-            affiliations = split_data[1]
-            creator_data["affiliations"] = [
-                {"name": affiliation.strip()}
-                for affiliation in re.split(r",\s*(?=[A-Z])", affiliations)
-            ]
+        if len(split_data) <= 1:
+            return
+
+        affiliations = split_data[1]
+        creator_data["affiliations"] = self._create_affiliations(affiliations)
+
+    def _create_affiliations(self, affiliations):
+        affiliation_list = re.split(r",\s*(?=[A-Z])", affiliations)
+        return [
+            {"name": affiliation.strip()}
+            for affiliation in affiliation_list
+            if affiliation.strip()  # Exclude empty names
+        ]
 
 
 class CreatorParser:
@@ -118,7 +128,7 @@ class CreatorParser:
         if parser_strategy is None:
             # TODO: Add KTHID when it's implemented in invenio instance
             # identifier_extractors = [OrcidExtractor(), KthidExtractor()]
-            parser_strategy = DefaultCreatorParserStrategy(
+            parser_strategy = PersonOrOrgParserStrategy(
                 identifier_extractors=[OrcidExtractor()]
             )
         self.parser_strategy = parser_strategy
