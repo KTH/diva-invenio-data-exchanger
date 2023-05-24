@@ -1,10 +1,10 @@
 from diva_invenio_data_exchanger.services.description import clean_description
 from diva_invenio_data_exchanger.services.keywords import clean_keywords
+from diva_invenio_data_exchanger.services.language import clean_language
 from diva_invenio_data_exchanger.services.names import clean_name
 from diva_invenio_data_exchanger.services.resource_type import \
     translate_resource_type
 from diva_invenio_data_exchanger.services.title import clean_title
-from diva_invenio_data_exchanger.services.language import clean_language
 
 metadata_mapping = {
     "resource_type": {"old": "PublicationType", "func": translate_resource_type},
@@ -21,4 +21,6 @@ invenio_requiered_fields = {
     "access": {"record": "public", "files": "public"},
     "files": {"enabled": False},
     "type": "community-submission",
+    "pids": {},
+    "custom_fields": {}
 }
