@@ -7,6 +7,7 @@ import pandas as pd
 # TODO delete this file
 # For debugging purposes only
 
+
 class CreatorParserStrategy(ABC):
     @abstractmethod
     def parse(self, creator):
