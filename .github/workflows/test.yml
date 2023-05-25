@@ -29,3 +29,9 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+      - name: Format code with black
+        run: black .
+
+      - name: Sort imports with isort
+        run: isort .
