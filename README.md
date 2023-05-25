@@ -25,11 +25,18 @@ Runs the main.py Python script with the input and output arguments provided as c
 ```bash
 make run input=data/input/pub.csv output=data/output/pub.json
 ```
+expected input structure from Diva: [here](tests/fixtures/input/fixture.csv)
+
 
 ### Format
-Formats the code using the black code formatter.
+Formats the code using the black code formatter and isort.
 ```bash
 make format
+```
+
+### Test
+```bash
+make test
 ```
 
 ### Contribution Request:
@@ -37,12 +44,12 @@ Find TODO, send PR.
 
 
 
-### builder class where it build the request body
-https://inveniordm.docs.cern.ch/reference/metadata/
-
-### Pandas docs:
-https://pandas.pydata.org/docs/getting_started/intro_tutorials/10_text_data.html
+## Resources:
+### [Invenio docs](https://inveniordm.docs.cern.ch/reference/metadata/)
 
 
-### Invenio record schema
-https://github.com/inveniosoftware/invenio-rdm-records/blob/6d7758714d08be9317bed5d402fc09731f71bf3d/invenio_rdm_records/records/jsonschemas/records/record-v6.0.0.json
+### [Pandas docs](https://pandas.pydata.org/docs/getting_started/intro_tutorials/10_text_data.html)
+
+
+
+### [Invenio record schema](https://github.com/inveniosoftware/invenio-rdm-records/blob/6d7758714d08be9317bed5d402fc09731f71bf3d/invenio_rdm_records/records/jsonschemas/records/record-v6.0.0.json)
