@@ -10,6 +10,7 @@ class CreatorParserStrategy(ABC):
 
 class StringExtractor(ABC):
     """String extractor."""
+
     @abstractmethod
     def extract(self, identifier):
         """Extract identifier."""
@@ -17,6 +18,7 @@ class StringExtractor(ABC):
 
 class OrcidExtractor(StringExtractor):
     """Extract ORCID from identifier."""
+
     ORCID_PATTERN = re.compile(
         r"\b[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{3}[0-9A-Fa-fXx]\b"
     )
@@ -29,6 +31,7 @@ class OrcidExtractor(StringExtractor):
 
 class KthidExtractor(StringExtractor):
     """Extract KTHID from identifier."""
+
     KTHID_PATTERN = re.compile(r"\b[a-zA-Z0-9]{8}\b")
 
     def extract(self, identifier):
@@ -39,6 +42,7 @@ class KthidExtractor(StringExtractor):
 
 class PersonOrOrgParserStrategy(CreatorParserStrategy):
     """Parse person or organization."""
+
     def __init__(self, identifier_extractors=None):
         if identifier_extractors is None:
             identifier_extractors = [OrcidExtractor(), KthidExtractor()]
@@ -92,7 +96,9 @@ class PersonOrOrgParserStrategy(CreatorParserStrategy):
             return None
 
         creator_data["person_or_org"]["identifiers"] = [
-            self._extract_identifier(identifier) for identifier in identifiers if self._extract_identifier(identifier) is not None
+            self._extract_identifier(identifier)
+            for identifier in identifiers
+            if self._extract_identifier(identifier) is not None
         ]
 
     def _extract_identifier(self, identifier):
@@ -103,6 +109,7 @@ class PersonOrOrgParserStrategy(CreatorParserStrategy):
         return None
 
     # TODO needs imporvment
+    # replace [id] with corresponding value
     def _add_affiliations(self, creator_data, split_data):
         if len(split_data) <= 1:
             return
