@@ -12,4 +12,5 @@ def clear_output_file():
     # Teardown: Remove the output file after the test
     output_file = "tests/fixtures/output/fixture.json"
     if os.path.exists(output_file):
-        os.remove(output_file)
+        with open(output_file, "w") as f:
+            f.truncate(0)
