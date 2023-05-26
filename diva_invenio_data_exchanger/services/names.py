@@ -190,6 +190,65 @@ def parse_name(creator_name):
     """
     Cleans a creator name string.
     """
-    creator_parser = CreatorParser()
 
-    return creator_parser.parse(creator_name)
+    # Split the input on semicolon to get the individual creators.
+    creators = creator_name.split(";")
+
+    output = []
+    for creator in creators:
+        if creator.strip() == '':
+            continue
+        # Split on the first occurrence of parenthesis to separate name, id and affiliations
+        parts = re.split(r'\s*\(\s*(.*?)\s*\)\s*', creator, maxsplit=1)
+        # import pdb; pdb.set_trace()
+
+        # Handling the part outside of parentheses
+        # Extracting the name, kthid and orcid
+        name_id_part = parts[0].strip().split('[')
+        first_last_name = name_id_part[0].strip().split(',')
+        last_name = first_last_name[0].strip()
+        first_name = first_last_name[1].strip() if len(first_last_name) > 1 else ''
+
+
+        def parse_identifiers(string, kth_id=True):
+            res = []
+            ids = re.findall(r'\[(.*?)\]', string)
+            kthid = ids[0] if len(ids) > 0 else None
+            orcid = ids[1] if len(ids) > 1 else None
+
+            if not kthid and not orcid:
+                return None
+
+            if kth_id and kthid:
+                res.append({
+                    'identifier': kthid,
+                    "scheme": "kthid"
+                })
+
+            if not orcid:
+                return res
+
+            res.append({
+                    "identifier": orcid,
+                    "scheme": "orcid"
+                })
+            return res
+
+        identifiers = parse_identifiers(parts[0],  kth_id=False)
+        # Handling the part inside of parentheses
+        affiliations = []
+        if len(parts) > 1:
+            aff_part = parts[1].replace(')', '')
+            affiliations = [{"name": aff.strip()} for aff in aff_part.split(',')]
+        result = {
+            'given_name': first_name,
+            'family_name': last_name,
+            'affiliations': affiliations
+            }
+
+        if identifiers:
+            result['identifiers'] = identifiers
+
+        output.append(result)
+
+    return output
