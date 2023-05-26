@@ -24,3 +24,5 @@ invenio_requiered_fields = {
     "pids": {},
     "custom_fields": {},
 }
+
+included_keys = ["access", "files", "type", "metadata"]

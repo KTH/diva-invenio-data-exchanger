@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
+from diva_invenio_data_exchanger.config import included_keys
 from diva_invenio_data_exchanger.utils.general import parse_arguments
 from main import main
 from tests.fixtures.output_fixtures import clear_output_file
@@ -49,3 +50,6 @@ def test_main_output_file_contains_json_array():
             data = json.load(f)
             assert isinstance(data, list), "Output file does not contain a JSON array"
             assert len(data) > 0, "Output file does not contain any JSON objects"
+            # All requiered keys exists
+            for key in included_keys:
+                assert data[0][key]

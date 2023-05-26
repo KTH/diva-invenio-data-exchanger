@@ -1,6 +1,7 @@
 import pandas as pd
 
-from diva_invenio_data_exchanger.config import invenio_requiered_fields
+from diva_invenio_data_exchanger.config import (included_keys,
+                                                invenio_requiered_fields)
 from diva_invenio_data_exchanger.utils.general import remove_html_tags
 
 
@@ -56,7 +57,7 @@ class CsvToJsonConverter:
 
     def select_columns(self):
         """Keep only the needed columns."""
-        return self.df[["access", "files", "type", "metadata"]]
+        return self.df[included_keys]
 
     def convert(self):
         """Converts CSV to JSON and saves it to file."""
