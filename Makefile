@@ -1,13 +1,17 @@
 .DEFAULT_GOAL=ls
 
-ls: # list available commands
+ls: ## list available commands
 	@grep '^[^#[:space:]].*:' Makefile
-format: # format the code using black
+
+format: ## format the code using black
 	@black .
 	@isort .
-install: # Install py dependencies
+
+install: ## Install Python dependencies
 	@pip install -r requirements.txt
-run: # Install py dependencies
+
+run: ## Run the main.py script with input and output parameters
 	@python main.py $(input) $(output)
-test: # Run tests
+
+test: ## Run tests using pytest
 	@pytest

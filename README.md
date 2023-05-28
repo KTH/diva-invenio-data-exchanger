@@ -44,6 +44,9 @@ Find TODO, send PR.
 
 
 
+### Invenio API
+Most likelly we will use [newman](https://www.npmjs.com/package/newman) it's a free command-line collection runner for Postman, it can generate reports and take care of the API requests part.
+
 ## Resources:
 ### [Invenio docs](https://inveniordm.docs.cern.ch/reference/metadata/)
 

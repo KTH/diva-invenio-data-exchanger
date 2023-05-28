@@ -23,7 +23,7 @@ class DataMapper:
             pd.DataFrame: Dataframe with mapped columns.
         """
         for new, info in self.mapping.items():
-            df[new] = df[info["old"]].apply(info["func"])
+            df[new] = df[info["dataKey"]].apply(info["func"])
         return df
 
 

@@ -1,19 +1,18 @@
-from diva_invenio_data_exchanger.services.description import parse_description
-from diva_invenio_data_exchanger.services.keywords import parse_keywords
-from diva_invenio_data_exchanger.services.language import parse_language
-from diva_invenio_data_exchanger.services.names import parse_name
-from diva_invenio_data_exchanger.services.resource_type import \
-    parse_resource_type
-from diva_invenio_data_exchanger.services.title import parse_title
+from diva_invenio_data_exchanger.services.metadata import (parse_description,
+                                                           parse_keywords,
+                                                           parse_language,
+                                                           parse_name,
+                                                           parse_resource_type,
+                                                           parse_title)
 
 metadata_mapping = {
-    "resource_type": {"old": "PublicationType", "func": parse_resource_type},
-    "description": {"old": "Abstract", "func": parse_description},
-    "subjects": {"old": "Keywords", "func": parse_keywords},
-    "creators": {"old": "Name", "func": parse_name},
-    "title": {"old": "Title", "func": parse_title},
-    "publication_date": {"old": "PublicationDate", "func": parse_title},
-    "languages": {"old": "Language", "func": parse_language},
+    "resource_type": {"dataKey": "PublicationType", "func": parse_resource_type},
+    "description": {"dataKey": "Abstract", "func": parse_description},
+    "subjects": {"dataKey": "Keywords", "func": parse_keywords},
+    "creators": {"dataKey": "Name", "func": parse_name},
+    "title": {"dataKey": "Title", "func": parse_title},
+    "publication_date": {"dataKey": "PublicationDate", "func": parse_title},
+    "languages": {"dataKey": "Language", "func": parse_language},
 }
 
 
