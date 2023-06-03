@@ -1,7 +1,9 @@
 import argparse
 import re
 
-import click
+from rich.console import Console
+
+console = Console()
 
 
 def parse_arguments():
@@ -22,7 +24,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def display_message(message, color="green"):
+def display_message(message, color="green", **kwargs):
     """Helper function to display messages with specified color.
     available colors: green, red, yellow, blue, magenta, cyan, white.
     :param message: message to display
@@ -30,7 +32,7 @@ def display_message(message, color="green"):
     :return: None
 
     """
-    click.secho(message, fg=color)
+    console.print(message, style=color, **kwargs)
 
 
 def remove_html_tags(text):

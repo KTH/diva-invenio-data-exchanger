@@ -45,7 +45,7 @@ class NamesParser(Parser):
         person_or_org = {
             "given_name": first_name,
             "family_name": last_name,
-            "type": "personal",
+            "type": "personal",  # TODO make this required field dynamic
         }
 
         if identifiers:

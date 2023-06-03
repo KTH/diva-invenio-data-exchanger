@@ -23,7 +23,7 @@ make install
 ### run
 Runs the main.py Python script with the input and output arguments provided as command line arguments.
 ```bash
-make run input=data/input/pub.csv output=data/output/pub.json
+make run path_in=data/input/100-pub.csv path_out=data/output/100-pub.json
 ```
 expected input structure from Diva: [here](tests/fixtures/input/fixture.csv)
 

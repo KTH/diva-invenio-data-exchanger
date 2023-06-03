@@ -11,7 +11,7 @@ install: ## Install Python dependencies
 	@pip install -r requirements.txt
 
 run: ## Run the main.py script with input and output parameters
-	@python main.py $(input) $(output)
+	@python main.py $(path_in) $(path_out)
 
 test: ## Run tests using pytest
 	@pytest
