@@ -56,3 +56,8 @@ Most likelly we will use [newman](https://www.npmjs.com/package/newman) it's a f
 
 
 ### [Invenio record schema](https://github.com/inveniosoftware/invenio-rdm-records/blob/6d7758714d08be9317bed5d402fc09731f71bf3d/invenio_rdm_records/records/jsonschemas/records/record-v6.0.0.json)
+
+
+## TODOs
+
+Look into the implementation of: https://github.com/front-matter/commonmeta-py
